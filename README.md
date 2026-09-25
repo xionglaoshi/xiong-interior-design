@@ -18,6 +18,7 @@ python -m pip install -r requirements.txt
 
 - 必需：Python 3.10+、Pillow、ezdxf。
 - Blender 建模/渲染参考图：Blender 5.2 或兼容版本，并确保 `blender` 命令可用；可用 `BLENDER_BIN` 指向可执行文件。
+- 可选：如需 Codex 直接连接交互中的 Blender，按 [`Blender 与 Codex MCP 及素材配置`](references/blender-codex-setup.md) 安装官方 Blender Lab MCP；仅运行技能自带后台建模脚本时不需要 MCP。
 - 浏览器交互测试：Chrome 或 Chromium、`websocket-client`（安装 `requirements-test.txt`）。
 - AI 图像表现：Codex 的 `imagegen` 技能，仅在需要生成效果图时使用。
 - 不需要付费 CAD 软件。当前工作流以用户提供的清晰 CAD 截图及用户确认作为依据；不承诺自动解码 DWG、自动判断承重墙或生成施工图。
@@ -48,6 +49,7 @@ python3 scripts/run_skill_tests.py --blender /path/to/blender
 - `assets/drawing-viewer/`：空白双图层注释器模板。
 - `assets/vendor/`：离线查看器运行库及第三方许可证。
 - `references/`：按工作阶段查阅的流程、数据格式和复用说明。
+- Blender 与 Codex 的可选连接、验证和素材库准备说明见 `references/blender-codex-setup.md`。
 
 ## 许可
 

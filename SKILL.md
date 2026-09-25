@@ -41,6 +41,8 @@ description: 熊老湿装修设计：按小步确认协助CAD/高清图纸核对
 
 ### Blender 基础建模
 
+需要通过 Codex 直接检查或操作已打开的 Blender 时，先按 [Blender 与 Codex 连接及素材配置](references/blender-codex-setup.md) 配置官方 Blender Lab MCP，并完成真实场景读取测试；MCP登记成功不等于 Blender 已连通。MCP 是可选交互能力，技能自带 Blender 后台脚本无需 MCP 也可运行。
+
 门扇默认不补；只有几何JSON明确包含经CAD/用户确认的 `door_swing` 才生成门扇代理。
 
 输入规范见 [模型几何 JSON v1](references/model-input-format.md)，批注到几何的确认闸口见 [批注转几何流程](references/annotation-to-geometry-workflow.md)，脚本为 `scripts/build_blender_scene.py`。它根据明确输入生成简化房间地面、直线墙、矩形门窗洞口、门框与着色玻璃代理、家具占位体，以及 CAD/用户确认后录入的柱/竖井/梁等矩形固定构件，并输出 `.blend`、`.glb`、浏览器查看页及 `使用说明.md`；说明文件列出配套文件、浏览器启动方式、房间和几何版本哈希，并明确非施工图边界。模型与离线依赖先在输出目录同盘的暂存区完整生成，再提交到目标目录；提交失败时尝试回滚已替换文件。查看页可整体总览、按房间聚焦、切换顶视布局/斜视空间，并自由旋转缩放。`.blend` 按地面/墙体/家具/固定构件/门窗及房间建立 Collection，独立对象附来源属性；GLB节点 extras 也保留角色、房间及家具/构件来源ID，便于后续程序核验；模型仍不含完整材质资产、灯光和渲染机位。`scripts/geometry_utils.py` 为 Blender、DXF 和渲染提示词提供统一几何校验，并负责共墙去重；自交/重叠房间、越界洞口/家具/固定构件或共墙定义冲突都会阻止生成。顶视布局用于读平面家具关系，斜视空间展示房间体量但完整墙体可能遮挡家具；二者都是观察模式，不替代完整 `.blend` 几何。家具为参数化代理体，不是精细产品模型。查看页使用随产物一并复制的官方 `<model-viewer>` 4.3.1 Web Component；运行时加载本地脚本，不要求外网。
