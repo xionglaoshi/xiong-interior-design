@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>{{PAGE_TITLE}}</title>
+  <style>{{INLINE_CSS}}</style>
+</head>
+<body>
+  <header aria-label="平面图对照与标注工具栏">
+    <nav class="views" aria-label="图层切换">
+      <button id="view-existing" class="active" type="button" aria-pressed="true">现状图</button>
+      <button id="view-layout" type="button" aria-pressed="false">平面布置图</button>
+    </nav>
+    <span class="divider"></span>
+    <nav class="tools" aria-label="标注工具">
+      <button type="button" data-tool="rect" aria-pressed="false">矩形</button>
+      <button type="button" data-tool="circle" aria-pressed="false">圆形</button>
+      <button type="button" data-tool="line" aria-pressed="false">直线</button>
+      <button type="button" data-tool="text" aria-pressed="false">文字</button>
+      <button id="undo" type="button" disabled>撤销</button>
+      <button id="clear" type="button" disabled>清空</button>
+      <button id="import" type="button">导入标注</button>
+      <button id="export" type="button">导出标注</button>
+    </nav>
+  </header>
+  <main id="viewport" aria-label="平面图画布">
+    <div id="paper"></div>
+  </main>
+  <div id="text-editor" hidden>
+    <textarea maxlength="200" aria-label="输入标注文字"></textarea>
+    <button type="button" data-action="save" aria-label="保存文字">✓</button>
+    <button type="button" data-action="cancel" aria-label="取消文字">×</button>
+  </div>
+  <div id="status" role="status" aria-live="polite"></div>
+  <input id="import-file" type="file" accept="application/json,.json" hidden>
+  <script id="drawing-config" type="application/json">{{CONFIG_JSON}}</script>
+  <script>{{INLINE_JS}}</script>
+</body>
+</html>

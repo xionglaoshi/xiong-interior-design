@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.py[cod]
+.DS_Store
+*.blend
+*.glb
+*.dxf
+*.dwg
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.json
+!**/fixtures/**/*.json
+outputs/
+work/

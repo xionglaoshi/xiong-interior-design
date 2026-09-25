@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>{{PROJECT_TITLE}} · 3D方案浏览</title>
+  <script type="module" src="model-viewer-4.3.1.min.js"></script>
+  <style>
+    :root { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #24352e; background: #edf1ee; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; display: grid; grid-template-rows: auto 1fr; }
+    header { min-height: 58px; display: flex; align-items: center; gap: 14px; padding: 10px 16px; background: #fff; border-bottom: 1px solid #d6ded8; }
+    h1 { font-size: 16px; margin: 0; font-weight: 650; }
+    .hint { font-size: 12px; color: #627269; margin-left: auto; }
+    button { border: 1px solid #b9c9be; background: #fff; color: #244b38; border-radius: 7px; padding: 8px 12px; font: inherit; cursor: pointer; }
+    button:hover { background: #eff5f0; }
+    select { max-width: 220px; border: 1px solid #b9c9be; background: #fff; color: #244b38; border-radius: 7px; padding: 8px; font: inherit; }
+    main { min-height: 0; padding: 12px; }
+    model-viewer { width: 100%; height: 100%; min-height: 420px; background: linear-gradient(#fafbf9, #e6ece7); border: 1px solid #d6ded8; border-radius: 10px; --poster-color: #f4f6f4; }
+    #status { position: fixed; left: 26px; bottom: 24px; padding: 7px 10px; border-radius: 6px; background: #ffffffd9; font-size: 12px; color: #52635a; }
+    @media (max-width: 650px) { header { flex-wrap: wrap; } .hint { display: none; } main { padding: 6px; } model-viewer { min-height: 70vh; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>{{PROJECT_TITLE}} · 3D方案</h1>
+    <button id="overview" type="button">整体总览</button>
+    <label for="room-select">房间</label>
+    <select id="room-select" aria-label="选择房间">{{ROOM_OPTIONS}}</select>
+    <label for="view-mode">视角</label>
+    <select id="view-mode" aria-label="选择观察模式">
+      <option value="layout">顶视布局</option>
+      <option value="open">斜视空间</option>
+    </select>
+    <button id="toggle-walls" type="button" aria-pressed="false" disabled title="仅改变浏览器中的显示，不修改或删除模型墙体">正在准备墙体显示…</button>
+    <button id="fullscreen" type="button">全屏</button>
+    <span class="hint">鼠标拖动旋转 · 滚轮缩放 · 右键拖动平移</span>
+  </header>
+  <main>
+    <model-viewer id="model" src="{{MODEL_FILE}}" alt="{{PROJECT_TITLE}}室内方案三维模型" camera-controls touch-action="none" camera-orbit="35deg 5deg auto" field-of-view="35deg" shadow-intensity="0.7" exposure="1.05" environment-image="neutral" interaction-prompt="auto" loading="eager"></model-viewer>
+  </main>
+  <div id="status">正在加载三维模型…</div>
+  <script>
+    const model = document.querySelector('#model');
+    const status = document.querySelector('#status');
+    const mode = document.querySelector('#view-mode');
+    const roomSelect = document.querySelector('#room-select');
+    const wallToggle = document.querySelector('#toggle-walls');
+    const wallMaterialName = {{WALL_MATERIAL_NAME}};
+    let wallAppearance = null;
+    let wallsHidden = false;
+    function setView(target, radius) {
+      if (mode.value === 'open') {
+        model.setAttribute('camera-target', target);
+        model.setAttribute('camera-orbit', `35deg 42deg ${radius}`);
+      } else {
+        model.setAttribute('camera-target', target);
+        model.setAttribute('camera-orbit', `35deg 5deg ${radius}`);
+      }
+    }
+    function wallMaterial() {
+      return model.model?.getMaterialByName(wallMaterialName) || null;
+    }
+    function prepareWallToggle() {
+      const material = wallMaterial();
+      const pbr = material?.pbrMetallicRoughness;
+      const color = pbr?.baseColorFactor;
+      if (!material || !pbr || !color || color.length !== 4 || typeof material.setAlphaMode !== 'function') {
+        wallToggle.disabled = true;
+        wallToggle.textContent = '墙体切换不可用';
+        wallToggle.title = '当前GLB未提供可单独控制的墙体材质';
+        return;
+      }
+      wallAppearance = {alphaMode: material.getAlphaMode(), baseColor: Array.from(color)};
+      wallToggle.disabled = false;
+      wallToggle.textContent = '隐藏墙体';
+      wallToggle.title = '仅改变浏览器中的显示，不修改或删除模型墙体';
+    }
+    wallToggle.addEventListener('click', () => {
+      const material = wallMaterial();
+      const pbr = material?.pbrMetallicRoughness;
+      if (!material || !pbr || !wallAppearance) {
+        prepareWallToggle();
+        return;
+      }
+      if (wallsHidden) {
+        material.setAlphaMode(wallAppearance.alphaMode);
+        pbr.setBaseColorFactor(wallAppearance.baseColor);
+        wallsHidden = false;
+      } else {
+        material.setAlphaMode('BLEND');
+        pbr.setBaseColorFactor([...wallAppearance.baseColor.slice(0, 3), 0]);
+        wallsHidden = true;
+      }
+      wallToggle.setAttribute('aria-pressed', String(wallsHidden));
+      wallToggle.textContent = wallsHidden ? '显示墙体' : '隐藏墙体';
+      wallToggle.title = wallsHidden
+        ? '墙体仅在当前浏览器视图中隐藏；点击恢复，模型几何未被删除'
+        : '仅改变浏览器中的显示，不修改或删除模型墙体';
+    });
+    model.addEventListener('load', () => {
+      prepareWallToggle();
+      status.textContent = '模型已加载';
+      setTimeout(() => status.remove(), 2200);
+    });
+    model.addEventListener('error', () => { status.textContent = '模型加载失败：请检查同目录 GLB 文件或浏览器 WebGL 支持'; });
+    setTimeout(() => {
+      if (!customElements.get('model-viewer')) status.textContent = '三维查看器脚本加载失败：请确认 model-viewer-4.3.1.min.js 与本页在同一目录';
+    }, 12000);
+    setTimeout(() => {
+      if (customElements.get('model-viewer') && status.isConnected && status.textContent === '正在加载三维模型…') {
+        status.textContent = '模型仍未加载：请检查 GLB 文件是否完整';
+      }
+    }, 20000);
+    document.querySelector('#overview').addEventListener('click', () => {
+      roomSelect.value = '';
+      model.setAttribute('camera-target', 'auto auto auto');
+      model.setAttribute('camera-orbit', mode.value === 'open' ? '35deg 42deg auto' : '35deg 5deg auto');
+    });
+    function focusSelectedRoom() {
+      const option = roomSelect.selectedOptions[0];
+      if (!option.value) return;
+      setView(option.dataset.target, option.dataset.radius);
+    }
+    roomSelect.addEventListener('change', event => {
+      const option = event.target.selectedOptions[0];
+      if (!option.value) {
+        document.querySelector('#overview').click();
+        return;
+      }
+      focusSelectedRoom();
+    });
+    mode.addEventListener('change', () => {
+      if (roomSelect.value) focusSelectedRoom();
+      else document.querySelector('#overview').click();
+    });
+    document.querySelector('#fullscreen').addEventListener('click', () => {
+      (model.requestFullscreen || model.webkitRequestFullscreen).call(model);
+    });
+  </script>
+</body>
+</html>
