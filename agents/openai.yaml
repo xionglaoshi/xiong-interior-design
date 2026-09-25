@@ -1,4 +1,4 @@
 interface:
-  display_name: "熊翔装修设计"
+  display_name: "熊老湿装修设计"
   short_description: "从CAD核对、平面布局到参考DXF、Blender三维与渲染提示词"
   default_prompt: "使用 $xiong-interior-design，以CAD和用户确认作为依据，只完成本轮指定的小步骤。"
